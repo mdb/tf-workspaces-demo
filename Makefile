@@ -20,3 +20,12 @@ bootstrap: tfenv
 tfenv:
 	TFENV_ARCH=amd64 tfenv install v$(shell cat .terraform-version)
 .PHONY: tfenv
+
+WORKSPACE:=default
+workspace:
+	terraform workspace select -or-create "$(WORKSPACE)"
+
+plan: workspace
+	terraform init \
+		&& terraform plan
+.PHONY: plan
