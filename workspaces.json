@@ -1,0 +1,12 @@
+{
+  "include": [{
+    "account": "123",
+    "region": "us-west-2"
+  }, {
+    "account": "123",
+    "region": "us-east-1"
+  }, {
+    "account": "456",
+    "region": "us-west-2"
+  }]
+}
