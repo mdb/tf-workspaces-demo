@@ -21,11 +21,20 @@ tfenv:
 	TFENV_ARCH=amd64 tfenv install v$(shell cat .terraform-version)
 .PHONY: tfenv
 
+init: tfenv
+	terraform init
+.PHONY: init
+
 WORKSPACE:=default
-workspace:
+workspace: init
 	terraform workspace select -or-create "$(WORKSPACE)"
 
 plan: workspace
-	terraform init \
-		&& terraform plan
+	terraform plan
 .PHONY: plan
+
+clean:
+	rm -rf bootstrap/.terraform || true
+	rm -rf bootstrap/*tfstate* || true
+	rm -rf .terraform || true
+.PHONY: true

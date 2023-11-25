@@ -3,10 +3,10 @@
     "account": "123",
     "region": "us-west-2"
   }, {
-    "account": "123",
+    "account": "456",
     "region": "us-east-1"
   }, {
-    "account": "456",
+    "account": "789",
     "region": "us-west-2"
   }]
 }
