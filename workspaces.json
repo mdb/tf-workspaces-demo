@@ -1,12 +1,9 @@
 {
   "include": [{
-    "account": "123",
-    "region": "us-west-2"
+    "workspace": "123_us-west-2"
   }, {
-    "account": "456",
-    "region": "us-east-1"
+    "workspace": "123_us-east-1"
   }, {
-    "account": "789",
-    "region": "us-west-2"
+    "workspace": "456_us-east-1"
   }]
 }
