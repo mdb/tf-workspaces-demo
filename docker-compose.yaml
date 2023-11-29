@@ -1,7 +1,8 @@
 version: "3.2"
 services:
   localstack:
-    image: localstack/localstack:latest
+    # https://hub.docker.com/r/gresau/localstack-persist
+    image: gresau/localstack-persist
     container_name: localstack
     ports:
       - "4563-4599:4563-4599"
@@ -10,4 +11,5 @@ services:
       - DATA_DIR=/tmp/localstack/data
       - DEBUG=1
     volumes:
+      - "./localstack-data:/persisted-data"
       - "/var/run/docker.sock:/var/run/docker.sock"

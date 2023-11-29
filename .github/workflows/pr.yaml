@@ -1,8 +1,9 @@
-name: Pull Request
+name: Terraform
 
 on:
-  #pull_request:
+  pull_request:
   push:
+    branch: main
 
 jobs:
   set-up:
@@ -13,6 +14,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Set up tfenv
+        uses: rhythmictech/actions-setup-tfenv@v0.1.2
+
+      - name: Start localstack mock AWS environment
+        run: make up
+
+      - name: Bootstrap localstack to have tf-workspaces-demo S3 bucket
+        run: make bootstrap
+
+      - name: Upload localstack data for use in subsequent jobs
+        uses: actions/upload-artifact@v3
+        with:
+          name: localstack-data
+          path: localstack-data
+          if-no-files-found: ignore
+          retention-days: 1
 
       - name: Set Terraform workspaces matrix
         id: set-matrix
@@ -31,11 +49,60 @@ jobs:
       - name: Set up tfenv
         uses: rhythmictech/actions-setup-tfenv@v0.1.2
 
+      - name: Download localstack data
+        uses: actions/download-artifact@v3
+
       - name: Start localstack mock AWS environment
         run: make up
 
-      - name: Bootstrap localstack to have tf-workspaces-demo S3 bucket
-        run: make bootstrap
-
       - name: Terraform plan ${{ matrix.workspace }}
-        run: make plan WORKSPACE="${{ matrix.workspace }}"
+        run: make plan WORKSPACE=${{ matrix.workspace }}
+
+      - name: Show Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
+        run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
+
+      - name: Upload Terraform plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.workspace }}
+          path: ${{ matrix.workspace }}.plan
+          if-no-files-found: ignore
+          retention-days: 1
+
+      - name: Upload localstack data for use in subsequent jobs
+        uses: actions/upload-artifact@v3
+        with:
+          name: localstack-data
+          path: localstack-data
+          if-no-files-found: ignore
+          retention-days: 1
+
+  terraform-apply:
+    runs-on: ubuntu-latest
+    needs: [set-up, terraform-plan]
+    strategy:
+      matrix: ${{ fromJson(needs.set-up.outputs.workspaces) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up tfenv
+        uses: rhythmictech/actions-setup-tfenv@v0.1.2
+
+      - name: Download localstack data
+        uses: actions/download-artifact@v3
+
+      - name: Start localstack mock AWS environment
+        run: make up
+
+      - name: Download Terraform plan
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ matrix.workspace }}
+
+      - name: Terraform apply ${{ matrix.workspace }}
+        run: make apply WORKSPACE="${{ matrix.workspace }}"
+
+      - name: Show Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
+        run: curl http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate

@@ -30,7 +30,13 @@ workspace: init
 	terraform workspace select -or-create "$(WORKSPACE)"
 
 plan: workspace
-	terraform plan
+	terraform plan \
+		-out "$(WORKSPACE).plan"
+.PHONY: plan
+
+PLAN:=$(WORKSPACE).plan
+apply: workspace
+	terraform apply "$(PLAN)"
 .PHONY: plan
 
 clean:
