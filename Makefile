@@ -1,8 +1,10 @@
 up:
 	docker-compose up \
 		--detach \
-		--build \
-		--wait localstack
+		--build
+	# wait 5s (this can be replaced with a '--wait' option when
+	# GitHub Actions supports later versions of docker-compose)
+	sleep 10
 
 down:
 	docker-compose down \
