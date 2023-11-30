@@ -13,3 +13,9 @@ services:
     volumes:
       - "./localstack-data:/persisted-data"
       - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test: curl --fail http://localhost:4566 || exit 1
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 3s

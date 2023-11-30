@@ -1,7 +1,8 @@
 up:
 	docker-compose up \
 		--detach \
-		--build
+		--build \
+		--wait localstack
 
 down:
 	docker-compose down \
