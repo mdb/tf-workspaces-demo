@@ -51,6 +51,8 @@ jobs:
 
       - name: Download localstack data
         uses: actions/download-artifact@v3
+        with:
+          name: localstack-data
 
       - name: Start localstack mock AWS environment
         run: make up
@@ -92,6 +94,8 @@ jobs:
 
       - name: Download localstack data
         uses: actions/download-artifact@v3
+        with:
+          name: localstack-data
 
       - name: Start localstack mock AWS environment
         run: make up
