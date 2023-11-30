@@ -53,6 +53,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: localstack-data
+          path: localstack-data
 
       - name: Verify presence of localstack data
         run: ls -R localstack-data
@@ -102,6 +103,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: localstack-data
+          path: localstack-data
 
       - name: Start localstack mock AWS environment
         run: make up
