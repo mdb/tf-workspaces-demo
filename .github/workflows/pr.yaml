@@ -18,11 +18,6 @@ jobs:
       - name: Set up tfenv
         uses: rhythmictech/actions-setup-tfenv@v0.1.2
 
-      - name: Check Docker version
-        run: |
-          docker --version
-          docker-compose --version
-
       - name: Start localstack mock AWS environment
         run: make up
 
@@ -36,7 +31,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: localstack-data
-          path: ./localstack-data/*
+          path: localstack-data
           if-no-files-found: error
           retention-days: 1
 
