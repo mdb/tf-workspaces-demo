@@ -1,13 +1,11 @@
 up:
-	docker-compose up \
+	docker compose up \
 		--detach \
-		--build
-	# wait 5s (this can be replaced with a '--wait' option when
-	# GitHub Actions supports later versions of docker-compose)
-	sleep 10
+		--build \
+		--wait
 
 down:
-	docker-compose down \
+	docker compose down \
 		--remove-orphans
 .PHONY: down
 
