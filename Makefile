@@ -3,6 +3,14 @@ up:
 		--detach \
 		--build \
 		--wait
+	# wait for all localstack-data to be written
+	sleep 5
+
+start-localstack:
+	docker compose up localstack \
+		--detach \
+		--build \
+		--wait
 
 down:
 	TERRAFORM_VERSION=$(shell cat .terraform-version) docker compose down \
