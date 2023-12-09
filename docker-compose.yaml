@@ -38,3 +38,9 @@ services:
       - "./bootstrap:/bootstrap"
     command: apply -auto-approve
     network_mode: "host"
+  wait:
+    image: alpine
+    depends_on:
+      terraform-apply:
+        condition: service_completed_successfully
+    command: sleep 5
