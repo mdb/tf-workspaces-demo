@@ -44,6 +44,7 @@ jobs:
     needs: set-up
     strategy:
       matrix: ${{ fromJson(needs.set-up.outputs.workspaces) }}
+      max-parallel: 1
 
     steps:
       - name: Checkout
