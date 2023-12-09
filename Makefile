@@ -4,7 +4,7 @@ up:
 		--build \
 		--wait
 	# wait for all localstack-data to be written
-	sleep 5
+	sleep 10
 
 start-localstack:
 	docker compose up localstack \
