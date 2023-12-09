@@ -17,3 +17,24 @@ services:
       retries: 5
       start_period: 5s
       timeout: 3s
+  terraform-init:
+    image: hashicorp/terraform:${TERRAFORM_VERSION}
+    container_name: terraform-init
+    depends_on:
+      localstack:
+        condition: service_healthy
+    working_dir: /bootstrap
+    volumes:
+      - "./bootstrap:/bootstrap"
+    command: init
+  terraform-apply:
+    image: hashicorp/terraform:${TERRAFORM_VERSION}
+    container_name: terraform-apply
+    depends_on:
+      terraform-init:
+        condition: service_completed_successfully
+    working_dir: /bootstrap
+    volumes:
+      - "./bootstrap:/bootstrap"
+    command: apply -auto-approve
+    network_mode: "host"

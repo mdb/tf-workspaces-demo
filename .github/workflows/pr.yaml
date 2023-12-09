@@ -15,14 +15,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up tfenv
-        uses: rhythmictech/actions-setup-tfenv@v0.1.2
-
       - name: Start localstack mock AWS environment
         run: make up
-
-      - name: Bootstrap localstack to have tf-workspaces-demo S3 bucket
-        run: make bootstrap
 
       - name: Verify localstack-data
         run: ls -R

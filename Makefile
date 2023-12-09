@@ -1,11 +1,11 @@
 up:
-	docker compose up \
+	TERRAFORM_VERSION=$(shell cat .terraform-version) docker compose up \
 		--detach \
 		--build \
 		--wait
 
 down:
-	docker compose down \
+	TERRAFORM_VERSION=$(shell cat .terraform-version) docker compose down \
 		--remove-orphans
 .PHONY: down
 
@@ -44,4 +44,5 @@ clean:
 	rm -rf bootstrap/.terraform || true
 	rm -rf bootstrap/*tfstate* || true
 	rm -rf .terraform || true
-.PHONY: true
+	rm -rf localstack-data || true
+.PHONY: clean
