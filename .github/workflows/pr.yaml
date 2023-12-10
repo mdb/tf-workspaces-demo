@@ -59,6 +59,9 @@ jobs:
       - name: Start localstack mock AWS environment
         run: make start-localstack
 
+      - name: Verify contents of localstack /persisted-data volume
+        run: docker compose exec -T localstack ls -R /persisted-data
+
       - name: Verify presence of localstack S3 bucket
         run: curl --verbose http://localhost.localstack.cloud:4566/tf-workspaces-demo
 
