@@ -36,7 +36,7 @@ init: tfenv
 
 WORKSPACE:=default
 workspace: init
-	terraform workspace select -or-create "$(WORKSPACE)"
+	TF_LOG=DEBUG terraform workspace select -or-create "$(WORKSPACE)"
 
 plan: workspace
 	terraform plan \
