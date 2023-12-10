@@ -38,19 +38,6 @@ WORKSPACE:=default
 workspace: init
 	TF_LOG=DEBUG terraform workspace select -or-create "$(WORKSPACE)"
 
-workspace-from-docker:
-	docker run \
-	--interactive \
-	--volume $(shell pwd):/src \
-	--workdir /src \
-	--entrypoint /bin/sh \
-	--network "host" \
-	hashicorp/terraform:$(shell cat .terraform-version) \
-		-c \
-			"terraform init && \
-			terraform workspace select -or-create foo"
-.PHONY: workspace-from-docker
-
 plan: workspace
 	terraform plan \
 		-out "$(WORKSPACE).plan"

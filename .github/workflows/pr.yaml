@@ -65,9 +65,6 @@ jobs:
       - name: Verify presence of localstack S3 bucket
         run: curl --verbose http://localhost.localstack.cloud:4566/tf-workspaces-demo
 
-      - name: UNDO workspace-from-docker
-        run: make workspace-from-docker
-
       - name: Terraform plan ${{ matrix.workspace }}
         run: make plan WORKSPACE=${{ matrix.workspace }}
 
