@@ -3,8 +3,6 @@ up:
 		--detach \
 		--build \
 		--wait
-	# wait for all localstack-data to be written
-	sleep 10
 
 start-localstack:
 	docker compose up localstack \
@@ -36,7 +34,7 @@ init: tfenv
 
 WORKSPACE:=default
 workspace: init
-	TF_LOG=DEBUG terraform workspace select -or-create "$(WORKSPACE)"
+	terraform workspace select -or-create "$(WORKSPACE)"
 
 plan: workspace
 	terraform plan \
