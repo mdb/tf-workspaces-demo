@@ -102,9 +102,17 @@ jobs:
       - name: Wait for 10s to prevent race conditions
         run: sleep 10
 
-  terraform-apply:
+  wait:
     runs-on: ubuntu-latest
     needs: [set-up, terraform-plan]
+
+    steps:
+      - name: Wait
+        run: sleep 5
+
+  terraform-apply:
+    runs-on: ubuntu-latest
+    needs: [set-up, terraform-plan, wait]
     strategy:
       matrix: ${{ fromJson(needs.set-up.outputs.workspaces) }}
 
