@@ -41,6 +41,10 @@ jobs:
     needs: set-up
     strategy:
       matrix: ${{ fromJson(needs.set-up.outputs.workspaces) }}
+      # NOTE: Because the steps in this workflow each write to the same localstack
+      # S3 bucket and persist the results via @actions/upload, it's necessary to
+      # prevent race conditions by imposing restrictions on parallelism.
+      # A real-world workflow would likely not restrict parallelism.
       max-parallel: 1
 
     steps:
@@ -54,9 +58,7 @@ jobs:
           path: localstack-data-tar
 
       - name: Untar localstack data to localstack-data
-        run: |
-          mkdir localstack-data
-          tar xf localstack-data-tar/localstack-data.tar --directory .
+        run: tar xf localstack-data-tar/localstack-data.tar --directory .
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
@@ -97,8 +99,8 @@ jobs:
 
         # The next build in the matrix may attempt to download the data before
         # it's been uploaded/persisted.
-      - name: Wait for 5s to prevent race conditions
-        run: sleep 5
+      - name: Wait for 10s to prevent race conditions
+        run: sleep 10
 
   terraform-apply:
     runs-on: ubuntu-latest
@@ -120,9 +122,7 @@ jobs:
           path: localstack-data-tar
 
       - name: Untar localstack data to localstack-data
-        run: |
-          mkdir localstack-data
-          tar xf localstack-data-tar/localstack-data.tar --directory .
+        run: tar xf localstack-data-tar/localstack-data.tar --directory .
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
