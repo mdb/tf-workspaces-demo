@@ -95,6 +95,11 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+        # The next build in the matrix may attempt to download the data before
+        # it's been uploaded/persisted.
+      - name: Wait for 5s to prevent race conditions
+        run: sleep 5
+
   terraform-apply:
     runs-on: ubuntu-latest
     needs: [set-up, terraform-plan]
