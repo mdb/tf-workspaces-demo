@@ -122,6 +122,9 @@ jobs:
       - name: Start localstack mock AWS environment
         run: make start-localstack
 
+      - name: Verify tf-workspaces-demo S3 bucket contents
+        run: curl http://localhost.localstack.cloud:4566/tf-workspaces-demo
+
       - name: Download Terraform plan
         uses: actions/download-artifact@v3
         with:
