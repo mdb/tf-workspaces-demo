@@ -86,15 +86,22 @@ jobs:
       - name: Show strategy
         run: echo "${{ toJson(strategy) }}"
 
+      - name: Analyze if this is the last build in the matrix
+        uses: actions/github-script@v7
+        id: is-final-matrix-build
+        with:
+          script: return ${{ strategy.job-total }} === (${{ strategy.job-index }} + 1)
+          result-encoding: string
+
         # actions/upload-artifact does not preserve the necessary
         # localstack-data file permissions. Tarring the localstack-data
         # directory offers a workaround.
       - name: Tar localstack-data to preserve file permissions
-        if: ${{ strategy.job-total == strategy.job-index + 1 }}
+        if: ${{ steps.is-final-matrix-build.outputs.result == 'true' }}
         run: tar -cvf localstack-data.tar localstack-data
 
       - name: Upload localstack data for use in subsequent jobs
-        if: ${{ strategy.job-total == strategy.job-index + 1 }}
+        if: ${{ steps.is-final-matrix-build.outputs.result == 'true' }}
         uses: actions/upload-artifact@v3
         with:
           name: localstack-data
