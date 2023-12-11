@@ -21,11 +21,14 @@ jobs:
       - name: Verify localstack-data
         run: ls -R
 
+      - name: Tar localstack-data to preserve file permissions
+        run: tar -cvf localstack-data.tar localstack-data
+
       - name: Upload localstack data for use in subsequent jobs
         uses: actions/upload-artifact@v3
         with:
           name: localstack-data
-          path: localstack-data
+          path: localstack-data.tar
           if-no-files-found: error
           retention-days: 1
 
@@ -44,20 +47,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up tfenv
-        uses: rhythmictech/actions-setup-tfenv@v0.1.2
-
       - name: Download localstack data
         uses: actions/download-artifact@v3
         with:
           name: localstack-data
-          path: localstack-data
+          path: localstack-data-tar
+
+      - name: Untar localstack data to localstack-data
+        run: |
+          mkdir localstack-data
+          tar xf localstack-data-tar/localstack-data.tar --directory .
 
       - name: Verify presence of localstack data
         run: ls -R localstack-data
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
+
+      - name: Set up tfenv
+        uses: rhythmictech/actions-setup-tfenv@v0.1.2
 
       - name: Verify contents of localstack /persisted-data volume
         run: docker compose exec -T localstack ls -R /persisted-data
