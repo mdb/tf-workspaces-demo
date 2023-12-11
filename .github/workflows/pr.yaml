@@ -18,9 +18,9 @@ jobs:
       - name: Start and bootstrap localstack mock AWS environment
         run: make up
 
-      - name: Verify localstack-data
-        run: ls -R
-
+        # actions/upload-artifact does not preserve the necessary
+        # localstack-data file permissions. Tarring the localstack-data
+        # directory offers a workaround.
       - name: Tar localstack-data to preserve file permissions
         run: tar -cvf localstack-data.tar localstack-data
 
@@ -58,17 +58,11 @@ jobs:
           mkdir localstack-data
           tar xf localstack-data-tar/localstack-data.tar --directory .
 
-      - name: Verify presence of localstack data
-        run: ls -R localstack-data
-
       - name: Start localstack mock AWS environment
         run: make start-localstack
 
       - name: Set up tfenv
         uses: rhythmictech/actions-setup-tfenv@v0.1.2
-
-      - name: Verify contents of localstack /persisted-data volume
-        run: docker compose exec -T localstack ls -R /persisted-data
 
       - name: Verify presence of localstack S3 bucket
         run: curl --verbose http://localhost.localstack.cloud:4566/tf-workspaces-demo
@@ -87,12 +81,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
+        # actions/upload-artifact does not preserve the necessary
+        # localstack-data file permissions. Tarring the localstack-data
+        # directory offers a workaround.
+      - name: Tar localstack-data to preserve file permissions
+        run: tar -cvf localstack-data.tar localstack-data
+
       - name: Upload localstack data for use in subsequent jobs
         uses: actions/upload-artifact@v3
         with:
           name: localstack-data
-          path: localstack-data
-          if-no-files-found: ignore
+          path: localstack-data.tar
+          if-no-files-found: error
           retention-days: 1
 
   terraform-apply:
@@ -112,7 +112,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: localstack-data
-          path: localstack-data
+          path: localstack-data-tar
+
+      - name: Untar localstack data to localstack-data
+        run: |
+          mkdir localstack-data
+          tar xf localstack-data-tar/localstack-data.tar --directory .
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
