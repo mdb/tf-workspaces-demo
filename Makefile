@@ -3,6 +3,9 @@ up:
 		--detach \
 		--build \
 		--wait
+	# Hack: it seems the localstack files aren't written to the file system
+	# uber-immediately
+	sleep 10
 
 start-localstack:
 	docker compose up localstack \
