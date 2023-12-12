@@ -51,14 +51,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Download localstack data
+      - name: Determine localstack-data artifact name generated from previous jobs
+        uses: actions/github-script@v7
+        id: localstack-data-artifact-name
+        with:
+          script: |
+            const jobIndex = ${{ strategy.job-index }};
+            return jobIndex === 0 ? 'localstack-data' : `localstack-data-${ jobIndex - 1}`
+          result-encoding: string
+
+      - name: Download persisted localstack data generated from previous jobs
         uses: actions/download-artifact@v3
         with:
-          name: localstack-data
+          name: ${{ steps.localstack-data-artifact-name.outputs.result }}
           path: localstack-data-tar
 
       - name: Untar localstack data to localstack-data
-        run: tar xf localstack-data-tar/localstack-data.tar --directory .
+        run: |
+          tar xf localstack-data-tar/${{ steps.localstack-data-artifact-name.outputs.result }}.tar --directory .
+          if [ [ "${{ steps.localstack-data-artifact-name.outputs.result }}" != "localstack-data" ]]; then
+            mv ${{ steps.localstack-data-artifact-name.outputs.result }} localstack-data
+          fi
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
@@ -67,7 +80,7 @@ jobs:
         uses: rhythmictech/actions-setup-tfenv@v0.1.2
 
       - name: Verify presence of localstack S3 bucket
-        run: curl --verbose http://localhost.localstack.cloud:4566/tf-workspaces-demo
+        run: curl --fail http://localhost.localstack.cloud:4566/tf-workspaces-demo
 
       - name: Terraform plan ${{ matrix.workspace }}
         run: make plan WORKSPACE=${{ matrix.workspace }}
@@ -83,10 +96,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
-      - name: Show strategy
-        run: echo "${{ toJson(strategy) }}"
-
-      - name: Analyze if this is the last build in the matrix
+      - name: Determine if this is the last build in the matrix
         uses: actions/github-script@v7
         id: is-final-matrix-build
         with:
@@ -97,28 +107,26 @@ jobs:
         # localstack-data file permissions. Tarring the localstack-data
         # directory offers a workaround.
       - name: Tar localstack-data to preserve file permissions
-        if: ${{ steps.is-final-matrix-build.outputs.result == 'true' }}
-        run: tar -cvf localstack-data.tar localstack-data
+        run: tar -cvf localstack-data-${{ strategy.job-index }}.tar localstack-data
 
       - name: Upload localstack data for use in subsequent jobs
-        if: ${{ steps.is-final-matrix-build.outputs.result == 'true' }}
         uses: actions/upload-artifact@v3
         with:
-          name: localstack-data
-          path: localstack-data.tar
+          name: localstack-data-${{ strategy.job-index }}
+          path: localstack-data-${{ strategy.job-index }}.tar
           if-no-files-found: error
           retention-days: 1
-
-        # The next build in the matrix may attempt to download the data before
-        # it's been uploaded/persisted.
-      - name: Wait for 10s to prevent race conditions
-        run: sleep 10
 
   terraform-apply:
     runs-on: ubuntu-latest
     needs: [set-up, terraform-plan]
     strategy:
       matrix: ${{ fromJson(needs.set-up.outputs.workspaces) }}
+      # NOTE: Because the steps in this workflow each write to the same localstack
+      # S3 bucket and persist the results via @actions/upload, it's necessary to
+      # prevent race conditions by imposing restrictions on parallelism.
+      # A real-world workflow would likely not restrict parallelism.
+      max-parallel: 1
 
     steps:
       - name: Checkout
@@ -127,17 +135,37 @@ jobs:
       - name: Set up tfenv
         uses: rhythmictech/actions-setup-tfenv@v0.1.2
 
-      - name: Download localstack data
+      - name: Determine final localstack data artifact name generated from prior jobs
+        uses: actions/github-script@v7
+        id: final-localstack-data-artifact-name
+        with:
+          script: |
+            const suffix = ${{ strategy.job-total }} - 1
+            return `localstack-data-${suffix}`
+          result-encoding: string
+
+      - name: Download final localstack data generated from prior jobs
         uses: actions/download-artifact@v3
         with:
-          name: localstack-data
+          name: ${{ steps.final-localstack-data-artifact-name.outputs.result }}
           path: localstack-data-tar
 
       - name: Untar localstack data to localstack-data
-        run: tar xf localstack-data-tar/localstack-data.tar --directory .
+        run: tar xf localstack-data-tar/${{ steps.final-localstack-data-artifact-name.outputs.result }}.tar --directory .
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
+
+      - name: Verify localstack-data in localstack container
+        run: docker compose exec -T localstack ls -R /persisted-data
+
+      - name: Wait for localstack ${{ matrix.workspace }} S3 object to be available in s3://tf-workspaces-demo
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
+          responseCode: 200
+          interval: 2000
+          timeout: 30000
 
       - name: Verify ${{ matrix.workspace }} workspace exists in s3://tf-workspaces-demo
         run: curl --fail http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate
