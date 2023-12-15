@@ -51,7 +51,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Determine localstack-data artifact name generated from previous jobs
+      - name: Determine localstack-data artifact name generated from previous-run matrix job
         uses: actions/github-script@v7
         id: localstack-data-artifact-name
         with:
@@ -66,9 +66,10 @@ jobs:
           name: ${{ steps.localstack-data-artifact-name.outputs.result }}
           path: localstack-data-tar
 
-      - name: Untar localstack data to localstack-data
+      - name: Untar localstack data to localstack-data directory
         run: |
           tar xf localstack-data-tar/${{ steps.localstack-data-artifact-name.outputs.result }}.tar --directory .
+          # TODO: this may not be needed
           if [ [ "${{ steps.localstack-data-artifact-name.outputs.result }}" != "localstack-data" ]]; then
             mv ${{ steps.localstack-data-artifact-name.outputs.result }} localstack-data
           fi
@@ -88,7 +89,7 @@ jobs:
       - name: Show Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
         run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
 
-      - name: Upload Terraform plan
+      - name: Upload Terraform plan as build artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.workspace }}
@@ -96,20 +97,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
-      - name: Determine if this is the last build in the matrix
-        uses: actions/github-script@v7
-        id: is-final-matrix-build
-        with:
-          script: return ${{ strategy.job-total }} === (${{ strategy.job-index }} + 1)
-          result-encoding: string
-
         # actions/upload-artifact does not preserve the necessary
         # localstack-data file permissions. Tarring the localstack-data
         # directory offers a workaround.
-      - name: Tar localstack-data to preserve file permissions
+      - name: Tar localstack-data directory to preserve file permissions
         run: tar -cvf localstack-data-${{ strategy.job-index }}.tar localstack-data
 
-      - name: Upload localstack data for use in subsequent jobs
+        # By treating the localstack-data directory as a build artifact, localstack data
+        # can be persisted across GH Actions steps.
+      - name: Upload localstack-data directory tarball as build artifact for use in subsequent jobs
         uses: actions/upload-artifact@v3
         with:
           name: localstack-data-${{ strategy.job-index }}
@@ -156,14 +152,14 @@ jobs:
       - name: Start localstack mock AWS environment
         run: make start-localstack
 
-      - name: Verify localstack-data in localstack container
-        run: docker compose exec -T localstack ls -R /persisted-data
-
-      - name: Sleep for 1 minute to wait for localstack data availability
+      - name: Wait for localstack s3://tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate availability
         run: sleep 60
 
-      - name: Verify ${{ matrix.workspace }} workspace exists in s3://tf-workspaces-demo
-        run: curl --fail http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate
+      - name: Wait for localstack s3://tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate availability
+        uses: artiz/poll-endpoint@1.0.2
+        with:
+          url: "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
+          interval: 3000
 
       - name: Download Terraform plan
         uses: actions/download-artifact@v3
