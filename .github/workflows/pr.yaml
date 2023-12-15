@@ -152,14 +152,11 @@ jobs:
       - name: Start localstack mock AWS environment
         run: make start-localstack
 
-      - name: Wait for localstack s3://tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate availability
-        run: sleep 60
+      - name: Verify contents of localstack-data directory for debugging purposes
+        run: docker compose exec --no-TTY localstack ls -R /persisted-data
 
       - name: Wait for localstack s3://tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate availability
-        uses: artiz/poll-endpoint@1.0.2
-        with:
-          url: "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
-          interval: 3000
+        run: sleep 120
 
       - name: Download Terraform plan
         uses: actions/download-artifact@v3
