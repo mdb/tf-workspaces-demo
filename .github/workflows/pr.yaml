@@ -159,13 +159,8 @@ jobs:
       - name: Verify localstack-data in localstack container
         run: docker compose exec -T localstack ls -R /persisted-data
 
-      - name: Wait for localstack ${{ matrix.workspace }} S3 object to be available in s3://tf-workspaces-demo
-        uses: nev7n/wait_for_response@v1
-        with:
-          url: "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
-          responseCode: 200
-          interval: 2000
-          timeout: 30000
+      - name: Sleep for 1 minute to wait for localstack data availability
+        run: sleep 60
 
       - name: Verify ${{ matrix.workspace }} workspace exists in s3://tf-workspaces-demo
         run: curl --fail http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate
