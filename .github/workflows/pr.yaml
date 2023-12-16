@@ -223,4 +223,4 @@ jobs:
         run: make plan WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
 
       - name: Terraform apply ephemeral ${{ steps.set-workspace.outputs.workspace }} workspace
-        run: make plan WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
+        run: make apply WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
