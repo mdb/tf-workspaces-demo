@@ -1,3 +1,4 @@
 bootstrap/*tfstate*
 *.terraform
 localstack-data
+*.plan

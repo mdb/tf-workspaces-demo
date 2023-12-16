@@ -1,6 +1,12 @@
 terraform {
   required_version = "1.5.0"
 
+  // Terraform workspaces assume a single S3 backend configuration spanning all
+  // workspaces, enabling re-use of a single Terraform project configuration
+  // across multiple workspace contexts.
+  // Terraform automatically saves each workspace's state to a distinct
+  // workspace object path:
+  // ${BUCKET}/env:/${terraform.workspace}/terraform.tfstate
   backend "s3" {
     bucket                      = "tf-workspaces-demo"
     key                         = "terraform.tfstate"
