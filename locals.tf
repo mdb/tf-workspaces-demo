@@ -7,6 +7,11 @@ locals {
 
   env = local.workspace_parts[2]
 
+  supported_accounts_per_env = {
+    prod = ["123"]
+    dev  = ["456"]
+  }
+
   terraform_data_count_per_env = {
     prod = 2
   }
