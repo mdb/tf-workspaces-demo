@@ -189,3 +189,46 @@ jobs:
 
       - name: Issue GET request to ${{ matrix.workspace }} Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
         run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
+
+  terraform-plan-and-apply-ephemeral-pr-environment:
+    # Only run this job on pull requests
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: set-up
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Determine localstack-data artifact name generated from previous-run matrix job
+        uses: actions/github-script@v7
+        id: localstack-data-artifact-name
+        with:
+          script: |
+            const jobIndex = ${{ strategy.job-index }};
+            return jobIndex === 0 ? 'localstack-data' : `localstack-data-${ jobIndex - 1}`
+          result-encoding: string
+
+      - name: Download persisted localstack data generated from previous jobs
+        uses: actions/download-artifact@v3
+        with:
+          name: localstack-data
+          path: localstack-data-tar
+
+      - name: Untar localstack data to localstack-data directory
+        run: tar xf localstack-data-tar/${{ steps.localstack-data-artifact-name.outputs.result }}.tar --directory .
+
+      - name: Start localstack mock AWS environment
+        run: make start-localstack
+
+      - name: Set up tfenv
+        uses: rhythmictech/actions-setup-tfenv@v0.1.2
+
+      - name: Verify presence of localstack S3 bucket
+        run: curl --fail http://localhost.localstack.cloud:4566/tf-workspaces-demo
+
+      - name: Terraform plan ephemeral 456_us-east-1_dev_pr-${{ github.event.number }} workspace
+        run: make plan WORKSPACE=456_us-east-1_dev_pr-${{ github.event.number }}
+
+      - name: Terraform apply ephemeral 456_us-east-1_dev_pr-${{ github.event.number }} workspace
+        run: make plan WORKSPACE=456_us-east-1_dev_pr-${{ github.event.number }}
