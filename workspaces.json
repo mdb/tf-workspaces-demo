@@ -1,9 +1,9 @@
 {
   "include": [{
-    "workspace": "123_us-west-2"
+    "workspace": "123_us-west-2_prod"
   }, {
-    "workspace": "123_us-east-1"
+    "workspace": "123_us-east-1_prod"
   }, {
-    "workspace": "456_us-east-1"
+    "workspace": "456_us-east-1_dev"
   }]
 }
