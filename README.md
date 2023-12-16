@@ -16,6 +16,7 @@
 * enable the low-friction creation of new infrastructure in new account/region/environment combinations by adding a single workspace entry to `workspaces.json`
 * Bonus: `tf-workspaces-demo` illustrates the use [localstack-persist](https://hub.docker.com/r/gresau/localstack-persist) to create a local "mock" AWS
 * Bonus: `tf-workspaces-demo` shows how persist `localstack-persist` data across GitHub Actions jobs using [actions/upload-artifact](https://github.com/actions/upload-artifact)
+* Bonus: use a `Makefile` to wrap `terraform` commands, helping facilitate consistent (and documented) usage, independent of execution context (local vs. CI/CD, etc.)
 
 ## Wanna learn more about Terraform workspaces?
 
