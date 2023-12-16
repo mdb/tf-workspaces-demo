@@ -5,6 +5,11 @@ on:
   push:
     branch: main
 
+# Grant the workflow's GitHub token permissions to comment on PRs.
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   set-up:
     runs-on: ubuntu-latest
@@ -224,3 +229,15 @@ jobs:
 
       - name: Terraform apply ephemeral ${{ steps.set-workspace.outputs.workspace }} workspace
         run: make apply WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
+
+      - name: Create PR comment announcing the deployment
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}`.'
+            })
