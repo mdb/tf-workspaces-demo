@@ -191,7 +191,7 @@ jobs:
         run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
 
   terraform-plan-and-apply-ephemeral-pr-environment:
-    # Only run this job on pull requests
+    # Only execute this job in response to pull requests
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: set-up
@@ -200,15 +200,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Determine localstack-data artifact name generated from previous-run matrix job
-        uses: actions/github-script@v7
-        id: localstack-data-artifact-name
-        with:
-          script: |
-            const jobIndex = ${{ strategy.job-index }};
-            return jobIndex === 0 ? 'localstack-data' : `localstack-data-${ jobIndex - 1}`
-          result-encoding: string
-
       - name: Download persisted localstack data generated from previous jobs
         uses: actions/download-artifact@v3
         with:
@@ -216,7 +207,7 @@ jobs:
           path: localstack-data-tar
 
       - name: Untar localstack data to localstack-data directory
-        run: tar xf localstack-data-tar/${{ steps.localstack-data-artifact-name.outputs.result }}.tar --directory .
+        run: tar xf localstack-data-tar/localstack-data.tar --directory .
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
@@ -224,11 +215,12 @@ jobs:
       - name: Set up tfenv
         uses: rhythmictech/actions-setup-tfenv@v0.1.2
 
-      - name: Verify presence of localstack S3 bucket
-        run: curl --fail http://localhost.localstack.cloud:4566/tf-workspaces-demo
+      - name: Set workspace name
+        id: set-workspace
+        run: echo "workspace=456_us-east-1_pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
 
-      - name: Terraform plan ephemeral 456_us-east-1_dev_pr-${{ github.event.number }} workspace
-        run: make plan WORKSPACE=456_us-east-1_dev_pr-${{ github.event.number }}
+      - name: Terraform plan ephemeral ${{ steps.set-workspace.outputs.workspace }} workspace
+        run: make plan WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
 
-      - name: Terraform apply ephemeral 456_us-east-1_dev_pr-${{ github.event.number }} workspace
-        run: make plan WORKSPACE=456_us-east-1_dev_pr-${{ github.event.number }}
+      - name: Terraform apply ephemeral ${{ steps.set-workspace.outputs.workspace }} workspace
+        run: make plan WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
