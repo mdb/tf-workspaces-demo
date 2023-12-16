@@ -86,8 +86,16 @@ jobs:
       - name: Terraform plan ${{ matrix.workspace }}
         run: make plan WORKSPACE=${{ matrix.workspace }}
 
-      - name: Show Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
+      - name: Issue GET request to ${{ matrix.workspace }} Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
         run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
+
+        # NOTE: gresau/localstack-persist can seemingly experience a delay
+        # reflecting an S3 object in store.json; this can lead to race conditions
+        # in which an S3 object in localstack-data/s3/assets is not present in
+        # store.json. Ideally, this step could poll until the expected workspace
+        # object is present in store.json.
+      - name: Show all s3://tf-workspaces-demo objects in localstack-data/s3/store.json for debugging purposes
+        run: jq '.data["000000000000"]["us-east-1"]["_global"]["buckets"]["tf-workspaces-demo"]["objects"]["_store"] | keys' localstack-data/s3/store.json
 
       - name: Upload Terraform plan as build artifact
         uses: actions/upload-artifact@v3
@@ -155,8 +163,14 @@ jobs:
       - name: Verify contents of localstack-data directory for debugging purposes
         run: docker compose exec --no-TTY localstack ls -R /persisted-data
 
-      - name: Wait for localstack s3://tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate availability
-        run: sleep 120
+      - name: Show all s3://tf-workspaces-demo objects in localstack-data/s3/store.json for debugging purposes
+        run: jq '.data["000000000000"]["us-east-1"]["_global"]["buckets"]["tf-workspaces-demo"]["objects"]["_store"] | keys' localstack-data/s3/store.json
+
+      - name: Ensure localstack s3://tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate availability
+        uses: artiz/poll-endpoint@1.0.2
+        with:
+          url: "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
+          interval: 3000
 
       - name: Download Terraform plan
         uses: actions/download-artifact@v3
@@ -166,5 +180,5 @@ jobs:
       - name: Terraform apply ${{ matrix.workspace }}
         run: make apply WORKSPACE="${{ matrix.workspace }}"
 
-      - name: Show Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
-        run: curl http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate
+      - name: Issue GET request to ${{ matrix.workspace }} Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
+        run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
