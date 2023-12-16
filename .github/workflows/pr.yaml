@@ -5,11 +5,6 @@ on:
   push:
     branch: main
 
-# Grant the workflow's GitHub token permissions to comment on PRs.
-permissions:
-  contents: read
-  issues: write
-
 jobs:
   set-up:
     runs-on: ubuntu-latest
@@ -198,6 +193,8 @@ jobs:
   terraform-plan-and-apply-ephemeral-pr-environment:
     # Only execute this job in response to pull requests
     if: github.event_name == 'pull_request'
+    # Grant the workflow's GitHub token permissions to comment on PRs.
+    permissions: write-all
     runs-on: ubuntu-latest
     needs: set-up
 
@@ -231,7 +228,7 @@ jobs:
         run: make apply WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
 
       - name: Create PR comment announcing the deployment
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           github-token: ${{ github.token }}
           script: |
