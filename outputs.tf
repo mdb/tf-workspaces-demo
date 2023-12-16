@@ -1,3 +1,7 @@
+output "workspace" {
+  value = terraform.workspace
+}
+
 output "region" {
   value = local.region
 }
