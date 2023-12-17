@@ -227,14 +227,8 @@ jobs:
       - name: Terraform apply ephemeral ${{ steps.set-workspace.outputs.workspace }} workspace
         run: make apply WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
 
-      - name: Create PR comment announcing the deployment
-        uses: actions/github-script@v6
+      - name: Create PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details
+        uses: peter-evans/create-or-update-comment@v3
         with:
-          github-token: ${{ github.token }}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.'
-            })
+          issue-number: ${{ github.event.pull_request.number }}
+          body: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
