@@ -1,4 +1,5 @@
 version: "3.2"
+
 services:
   localstack:
     # https://hub.docker.com/r/gresau/localstack-persist
@@ -38,10 +39,17 @@ services:
       - "./bootstrap:/bootstrap"
     command: apply -auto-approve
     network_mode: "host"
-  wait-for-terraform-apply:
-    container_name: wait-for-terraform-apply
+  wait-for-s3-persistence:
+    container_name: wait-for-s3-persistence
     image: alpine
     depends_on:
       terraform-apply:
         condition: service_completed_successfully
+    volumes:
+      - "./localstack-data:/localstack-data"
     command: sleep 10
+    healthcheck:
+      test: ls /localstack-data/s3/assets | grep tf-workspaces-demo
+      interval: 5s
+      retries: 5
+      timeout: 3s
