@@ -38,7 +38,7 @@ jobs:
 
       - name: Determine localstack-data artifact name generated from prior workflow run
         id: artifact-name
-        run: echo "localstack-data-artifact-name=localstack-data-${{ steps.set-workspace.outputs.workspace }}" >> $GITHUB_OUTPUT
+        run: echo "artifact-name=localstack-data-${{ steps.set-workspace.outputs.workspace }}" >> $GITHUB_OUTPUT
 
       - name: Download persisted localstack data generated from previous jobs
         uses: actions/download-artifact@v3
