@@ -247,6 +247,7 @@ jobs:
         if: steps.find-comment.outputs.comment-id != ''
         uses: peter-evans/create-or-update-comment@v3
         with:
+          edit-mode: replace
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           body: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
 

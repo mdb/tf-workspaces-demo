@@ -1,4 +1,9 @@
 {
+  "//": "This JSON file configures the official, non-ephemeral Terraform workspaces.",
+  "//": "It is used to dynamically generate a GitHub Actions matrix build targeting each workspace in CI/CD.",
+  "//": "As such, it provides a single point of entry for creating new infrastructure within and along account/region/environment boundaries.",
+  "//": "Its structure is arguably bit odd, as GitHub Actions expects key/value-style JSON.",
+  "//": "However, the file could adhere to a different structure (or even file type) if desired.",
   "include": [{
     "workspace": "123_us-west-2_prod"
   }, {
