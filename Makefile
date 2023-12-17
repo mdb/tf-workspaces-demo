@@ -46,8 +46,9 @@ plan: workspace
 
 PLAN:=$(WORKSPACE).plan
 apply: workspace
-	terraform apply "$(PLAN)" \
-		-auto-approve
+	terraform apply \
+		-auto-approve \
+		"$(PLAN)"
 .PHONY: apply
 
 destroy: workspace
