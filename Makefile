@@ -4,7 +4,7 @@ up:
 		--build \
 		--wait
 	# Hack: it seems the localstack files aren't written to the file system
-	# uber-immediately
+	# uber-immediately.
 	sleep 10
 
 start-localstack:
@@ -46,8 +46,15 @@ plan: workspace
 
 PLAN:=$(WORKSPACE).plan
 apply: workspace
-	terraform apply "$(PLAN)"
-.PHONY: plan
+	terraform apply "$(PLAN)" \
+		-auto-approve
+.PHONY: apply
+
+destroy: workspace
+	terraform apply \
+		-destroy \
+		-auto-approve
+.PHONY: destroy
 
 clean:
 	rm -rf bootstrap/.terraform || true
