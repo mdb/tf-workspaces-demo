@@ -43,12 +43,12 @@ jobs:
       - name: Download persisted localstack data generated from previous jobs
         uses: actions/download-artifact@v4
         with:
-          name: ${{ steps.localstack-data-artifact-name.outputs.artifact-name }}
+          name: ${{ steps.artifact-name.outputs.artifact-name }}
           path: localstack-data-tar
           run-id: ${{ steps.run-id.outputs.run-id }}
 
       - name: Untar localstack data to localstack-data directory
-        run: tar xf localstack-data-tar/${{ steps.localstack-data-artifact-name.outputs.artifact-name }}.tar --directory .
+        run: tar xf localstack-data-tar/${{ steps.artifact-name.outputs.artifact-name }}.tar --directory .
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
