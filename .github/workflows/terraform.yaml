@@ -67,12 +67,7 @@ jobs:
           path: localstack-data-tar
 
       - name: Untar localstack data to localstack-data directory
-        run: |
-          tar xf localstack-data-tar/${{ steps.localstack-data-artifact-name.outputs.result }}.tar --directory .
-          # TODO: this may not be needed
-          if [ [ "${{ steps.localstack-data-artifact-name.outputs.result }}" != "localstack-data" ]]; then
-            mv ${{ steps.localstack-data-artifact-name.outputs.result }} localstack-data
-          fi
+        run: tar xf localstack-data-tar/${{ steps.localstack-data-artifact-name.outputs.result }}.tar --directory .
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
