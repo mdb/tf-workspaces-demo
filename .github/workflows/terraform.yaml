@@ -230,7 +230,7 @@ jobs:
           comment-author: 'github-actions[bot]'
           body-includes: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
 
-      - name: Find PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details
+      - name: Create PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details if a comment does not already exist
         if: steps.find-comment.outputs.comment-id == ''
         uses: peter-evans/create-or-update-comment@v3
         with:
@@ -238,7 +238,7 @@ jobs:
           body: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
           reactions: rocket
 
-      - name: Update PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details
+      - name: Update existing PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details if a comment already exists
         if: steps.find-comment.outputs.comment-id != ''
         uses: peter-evans/create-or-update-comment@v3
         with:
