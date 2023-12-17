@@ -31,7 +31,7 @@ jobs:
         id: run-id
         with:
           script: |
-            const commentParts = ${{ steps.find-comment.outputs.comment-body }}.split(' ');
+            const commentParts = '${{ steps.find-comment.outputs.comment-body }}'.split(' ');
             const runUrlParts = commentParts[commentParts.length - 1 ].replaceAll('.', '').split('/');
             return runUrlParts[runUrlParts.length - 1];
           result-encoding: string
