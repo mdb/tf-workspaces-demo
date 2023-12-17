@@ -4,10 +4,12 @@ up:
 		--build \
 		--wait
 	# Hack: it seems the localstack files aren't written to the file system
-	# uber-immediately
+	# uber-immediately.
 	sleep 10
 
 start-localstack:
+	# Start just the localstack container from docker-compose.yaml, assuming a
+	# localstack-data directory has already been seeded via 'make up', etc.
 	docker compose up localstack \
 		--detach \
 		--build \
@@ -46,8 +48,16 @@ plan: workspace
 
 PLAN:=$(WORKSPACE).plan
 apply: workspace
-	terraform apply "$(PLAN)"
-.PHONY: plan
+	terraform apply \
+		-auto-approve \
+		"$(PLAN)"
+.PHONY: apply
+
+destroy: workspace
+	terraform apply \
+		-destroy \
+		-auto-approve
+.PHONY: destroy
 
 clean:
 	rm -rf bootstrap/.terraform || true
