@@ -67,12 +67,7 @@ jobs:
           path: localstack-data-tar
 
       - name: Untar localstack data to localstack-data directory
-        run: |
-          tar xf localstack-data-tar/${{ steps.localstack-data-artifact-name.outputs.result }}.tar --directory .
-          # TODO: this may not be needed
-          if [ [ "${{ steps.localstack-data-artifact-name.outputs.result }}" != "localstack-data" ]]; then
-            mv ${{ steps.localstack-data-artifact-name.outputs.result }} localstack-data
-          fi
+        run: tar xf localstack-data-tar/${{ steps.localstack-data-artifact-name.outputs.result }}.tar --directory .
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
@@ -189,3 +184,73 @@ jobs:
 
       - name: Issue GET request to ${{ matrix.workspace }} Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
         run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
+
+  terraform-plan-and-apply-ephemeral-pr-environment:
+    # Only execute this job in response to pull requests
+    if: github.event_name == 'pull_request'
+    # Grant the workflow's GitHub token permissions to comment on PRs.
+    permissions: write-all
+    runs-on: ubuntu-latest
+    needs: set-up
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download persisted localstack data generated from previous jobs
+        uses: actions/download-artifact@v3
+        with:
+          name: localstack-data
+          path: localstack-data-tar
+
+      - name: Untar localstack data to localstack-data directory
+        run: tar xf localstack-data-tar/localstack-data.tar --directory .
+
+      - name: Start localstack mock AWS environment
+        run: make start-localstack
+
+      - name: Set up tfenv
+        uses: rhythmictech/actions-setup-tfenv@v0.1.2
+
+      - name: Set workspace name
+        id: set-workspace
+        run: echo "workspace=456_us-east-1_pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
+
+      - name: Terraform plan ephemeral ${{ steps.set-workspace.outputs.workspace }} workspace
+        run: make plan WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
+
+      - name: Terraform apply ephemeral ${{ steps.set-workspace.outputs.workspace }} workspace
+        run: make apply WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
+
+      - name: Find existing PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details
+        uses: peter-evans/find-comment@v2
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+
+      - name: Find PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details
+        if: steps.find-comment.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+          reactions: rocket
+
+      - name: Update PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details
+        if: steps.find-comment.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          body: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+
+      - name: Tar localstack-data directory to preserve file permissions
+        run: tar -cvf localstack-data-${{ steps.set-workspace.outputs.workspace }}.tar localstack-data
+
+      - name: Upload localstack-data directory tarball as build artifact for use in subsequent jobs
+        uses: actions/upload-artifact@v3
+        with:
+          name: localstack-data-${{ steps.set-workspace.outputs.workspace }}
+          path: localstack-data-${{ steps.set-workspace.outputs.workspace }}.tar
+          if-no-files-found: error

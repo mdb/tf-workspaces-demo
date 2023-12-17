@@ -1,0 +1,68 @@
+name: Destroy ephemeral PR deployment
+
+on:
+  pull_request:
+    types: [ closed ]
+
+jobs:
+  terraform-destroy-pr-deployment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set workspace name
+        id: set-workspace
+        run: echo "workspace=456_us-east-1_pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
+
+      - name: Find existing PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details
+        uses: peter-evans/find-comment@v2
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs
+          direction: last
+
+      - name: Use PR comment to determine GitHub Actions run ID that created ${{ steps.set-workspace.outputs.workspace }} deployment
+        uses: actions/github-script@v7
+        id: run-id
+        with:
+          script: |
+            const commentParts = ${{ steps.find-comment.outputs.comment-body }}.split(' ');
+            const runUrlParts = commentParts[commentParts.length - 1 ].replaceAll('.', '').split('/');
+            return runUrlParts[runUrlParts.length - 1];
+          result-encoding: string
+
+      - name: Determine localstack-data artifact name generated from prior workflow run
+        id: artifact-name
+        run: echo "localstack-data-artifact-name=localstack-data-${{ steps.set-workspace.outputs.workspace }}" >> $GITHUB_OUTPUT
+
+      - name: Download persisted localstack data generated from previous jobs
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ steps.localstack-data-artifact-name.outputs.artifact-name }}
+          path: localstack-data-tar
+          run-id: ${{ steps.run-id.outputs.run-id }}
+
+      - name: Untar localstack data to localstack-data directory
+        run: tar xf localstack-data-tar/${{ steps.localstack-data-artifact-name.outputs.artifact-name }}.tar --directory .
+
+      - name: Start localstack mock AWS environment
+        run: make start-localstack
+
+      - name: Set up tfenv
+        uses: rhythmictech/actions-setup-tfenv@v0.1.2
+
+      - name: Verify presence of localstack S3 bucket
+        run: curl --fail http://localhost.localstack.cloud:4566/tf-workspaces-demo
+
+      - name: Terraform destroy ${{ matrix.workspace }}
+        run: make destroy WORKSPACE=${{ matrix.workspace }}
+
+      - name: Create PR comment with ${{ steps.set-workspace.outputs.workspace }} destruction details
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: 👋 Destroyed `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
