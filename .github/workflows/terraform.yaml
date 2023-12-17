@@ -244,3 +244,13 @@ jobs:
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           body: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+
+      - name: Tar localstack-data directory to preserve file permissions
+        run: tar -cvf localstack-data-${{ steps.set-workspace.outputs.workspace }}.tar localstack-data
+
+      - name: Upload localstack-data directory tarball as build artifact for use in subsequent jobs
+        uses: actions/upload-artifact@v3
+        with:
+          name: localstack-data-${{ steps.set-workspace.outputs.workspace }}
+          path: localstack-data-${{ steps.set-workspace.outputs.workspace }}.tar
+          if-no-files-found: error
