@@ -236,5 +236,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}`.'
+              body: '👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.'
             })
