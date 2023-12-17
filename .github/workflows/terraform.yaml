@@ -89,11 +89,7 @@ jobs:
         # in which an S3 object in localstack-data/s3/assets is not present in
         # store.json.
       - name: Show all s3://tf-workspaces-demo objects in localstack-data/s3/store.json for debugging purposes
-        run: |
-          # TODO: Ideally, this step would poll until the expected workspace object is
-          # present in store.json, rather than sleep.
-          sleep 10
-          jq '.data["000000000000"]["us-east-1"]["_global"]["buckets"]["tf-workspaces-demo"]["objects"]["_store"] | keys' localstack-data/s3/store.json
+        run: ./scripts/wait-for-localstack-persistence.sh
 
       - name: Upload Terraform plan as build artifact
         uses: actions/upload-artifact@v3
