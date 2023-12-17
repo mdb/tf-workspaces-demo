@@ -224,7 +224,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+          body-includes: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/
 
       - name: Create PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details if a comment does not already exist
         if: steps.find-comment.outputs.comment-id == ''
