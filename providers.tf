@@ -1,5 +1,5 @@
-# Conditionally configure the aws provider based on the terraform.workspace's
-# account ID part.
+# Conditionally configure the aws provider based on values encoded in and
+# extracted from the Terraform workspace.
 provider "aws" {
   region = local.region
 
@@ -8,6 +8,7 @@ provider "aws" {
 
   assume_role {
     # Dynamically assume the desired role based on the targeted account.
+    # It's assumed these roles are created/managed via a separate Terraform project.
     role_arn = "arn:aws:iam::${local.account_id}:role/some-role"
   }
 }

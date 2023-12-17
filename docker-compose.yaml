@@ -1,4 +1,19 @@
+# This docker compose configuration establishes a local, mock AWS environment
+# using https://gresau/localstack-persist. It uses Terraform to bootstrap that
+# AWS environment with an S3 bucket Terraform remote state backend used by
+# subsequent Terraform invocations throughout the demo.
+#
+# Unlike the official localstack iamge, localstack-persist supports data
+# persistence between separate Docker runs, enabling tf-workspaces-demo to use a
+# localstack-hosted S3 bucket Terraform remote state backend across distinct
+# Terraform invocations (and distinct GitHub Actions CI/CD jobs).
+#
+# NOTE: Real-world Terraform configurations would likely only utilize a
+# docker-compose.yaml configuration like this for local testing capabilities, if
+# at all. However, tf-workspaces-demo uses this docker-compose.yaml to
+# circumvent the dependency (and $ cost) of using real AWS APIs.
 version: "3.2"
+
 services:
   localstack:
     # https://hub.docker.com/r/gresau/localstack-persist
@@ -38,10 +53,17 @@ services:
       - "./bootstrap:/bootstrap"
     command: apply -auto-approve
     network_mode: "host"
-  wait-for-terraform-apply:
-    container_name: wait-for-terraform-apply
+  wait-for-s3-persistence:
+    container_name: wait-for-s3-persistence
     image: alpine
     depends_on:
       terraform-apply:
         condition: service_completed_successfully
-    command: sleep 10
+    volumes:
+      - "./localstack-data:/localstack-data"
+    command: sleep 100
+    healthcheck:
+      test: ls /localstack-data/s3/assets | grep tf-workspaces-demo
+      interval: 5s
+      retries: 5
+      timeout: 3s

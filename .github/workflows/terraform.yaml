@@ -34,7 +34,7 @@ jobs:
 
       - name: Set Terraform workspaces matrix
         id: set-matrix
-        run: echo "workspaces=$(jq -c . < ./workspaces.json)" >> $GITHUB_OUTPUT
+        run: echo "workspaces=$(jq -c .workspaces < ./workspaces.json)" >> $GITHUB_OUTPUT
 
   terraform-plan:
     runs-on: ubuntu-latest
