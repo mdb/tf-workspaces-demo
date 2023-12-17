@@ -41,7 +41,7 @@ jobs:
         run: echo "artifact-name=localstack-data-${{ steps.set-workspace.outputs.workspace }}" >> $GITHUB_OUTPUT
 
       - name: Download persisted localstack data generated from previous jobs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ steps.localstack-data-artifact-name.outputs.artifact-name }}
           path: localstack-data-tar
