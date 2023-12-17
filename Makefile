@@ -8,6 +8,8 @@ up:
 	sleep 10
 
 start-localstack:
+	# Start just the localstack container from docker-compose.yaml, assuming a
+	# localstack-data directory has already been seeded via 'make up', etc.
 	docker compose up localstack \
 		--detach \
 		--build \
