@@ -5,7 +5,8 @@
 # that is present in localstack-data/s3/assets is not yet reflected in
 # store.json, and is therefore unknown to the localstack S3 API.
 
-workspace_count="$(jq '.include | length' workspaces.json)"
+default_workspace_count="$(jq '.include | length' workspaces.json)"
+workspace_count="${1:-$default_workspace_count}"
 attempts=0
 max_attempts=5
 
