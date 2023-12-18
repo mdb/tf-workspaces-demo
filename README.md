@@ -9,8 +9,8 @@ different logical environments (`dev`, `prod`, etc.).
 How can a single, IaC configuration be used across all necessary account, region,
 and environment combinations, expediting lead time creating new infrastructure
 as new account/region/environment combinations reveal themselves as necessary?
-How can the IaC be modeled to enforcing logically isolated failure domains and
-uniformity, while also accommodating heterogeneity where necessary?
+How can the IaC be modeled to enforce uniformity and logically isolated failure,
+while also accommodating heterogeneity where necessary?
 
 **Solution:** `tf-workspaces-demo` shows how Terraform's [workspace](https://developer.hashicorp.com/terraform/language/state/workspaces) feature -- used in concert with a robust workspace naming convention -- enables scalable [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) re-use patterns and logical infrastructure segmentation.
 
@@ -59,9 +59,16 @@ demos some other fun stuff too.
   the `${AWS_ACCOUNT_ID}_${AWS_REGION}_${ENV}` workspace naming scheme accommodates
   additional, increasingly granular suffixes if/where needed, like
   `${AWS_ACCOUNT_ID}_${AWS_REGION}_${ENV}_pr-${PULL_REQUEST_ID}`).
-* `tf-workspaces-demo` illustrates the use [localstack-persist](https://hub.docker.com/r/gresau/localstack-persist) to create a local mock AWS
-* `tf-workspaces-demo` shows how persist `localstack-persist` data across GitHub Actions jobs using [actions/upload-artifact](https://github.com/actions/upload-artifact)
-* Use a `Makefile` to wrap `terraform` commands, helping facilitate consistent (and documented) usage, independent of execution context (local vs. CI/CD, etc.)
+* [localstack-persist](https://hub.docker.com/r/gresau/localstack-persist) used to
+  create a local mock AWS. This is useful for demos like `tf-workspaces-demo`,
+  but also useful in development and testing real Terraform projects and modules.
+* [actions/upload-artifact](https://github.com/actions/upload-artifact) can be used
+  to persist `localstack-persist` panning multiple GitHub Actions jobs.
+* By imposing a `strategy.max-parallel: 1` on the GitHub Actions matrix build,
+  Terraform actions are invoked serially against each workspace in the order in
+  which workspaces are listed in `workspaces.json`. This means an error
+  applying to a `dev` workspace fails the build before any Terraform action is taken
+  against `prod` workspaces.
 
 See the source code comments for particular details and relevant callouts.
 
