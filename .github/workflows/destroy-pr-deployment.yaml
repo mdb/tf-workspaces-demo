@@ -46,7 +46,7 @@ jobs:
           name: ${{ steps.artifact-name.outputs.artifact-name }}
           path: localstack-data-tar
           run-id: ${{ steps.run-id.outputs.result }}
-          token: ${{ github.token }}
+          github-token: ${{ github.token }}
 
       - name: Untar localstack data to localstack-data directory
         run: tar xf localstack-data-tar/${{ steps.artifact-name.outputs.artifact-name }}.tar --directory .

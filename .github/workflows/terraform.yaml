@@ -44,7 +44,14 @@ jobs:
       # NOTE: Because the steps in this workflow each write to the same localstack
       # S3 bucket and persist the results via @actions/upload, it's necessary to
       # prevent race conditions by imposing restrictions on parallelism.
-      # A real-world workflow would likely not restrict parallelism.
+      #
+      # This has the side effect, though, of ensuring Terraform actions are invoked
+      # serially against each workspace in the order in which workspaces are listed
+      # in `workspaces.json`. This means an error applying to a `dev` workspace
+      # fails the build before any Terraform action is taken against `prod` workspaces.
+      #
+      # A real-world workflow may or may not restrict parallelism, depending on
+      # needs.
       max-parallel: 1
 
     steps:
@@ -127,16 +134,13 @@ jobs:
   terraform-apply:
     # NOTE: only apply on pushes to main.
     # In a real world scenario, it may make sense to invoke apply as a different
-    # workflow, entirely.
+    # workflow, entirely (or even to separate nonproduction and production
+    # Terraform actions across separate workflows).
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [set-up, terraform-plan]
     strategy:
       matrix: ${{ fromJson(needs.set-up.outputs.workspaces) }}
-      # NOTE: Because the steps in this workflow each write to the same localstack
-      # S3 bucket and persist the results via @actions/upload, it's necessary to
-      # prevent race conditions by imposing restrictions on parallelism.
-      # A real-world workflow would likely not restrict parallelism.
       max-parallel: 1
 
     steps:
