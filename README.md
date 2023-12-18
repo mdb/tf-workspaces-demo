@@ -22,7 +22,7 @@ failure domains, while also accommodating intentional heterogeneity?
 ## Highlights
 
 * Use a `${AWS_ACCOUNT_ID}_${AWS_REGION}_${ENV}` workspace naming scheme to
-  logically segement Terraform actions (and [state](https://developer.hashicorp.com/terraform/language/state)) across AWS account/region/environment
+  logically segment Terraform actions (and [state](https://developer.hashicorp.com/terraform/language/state)) across AWS account/region/environment
   boundaries, ensuring sufficiently limited failure domains.
 * Use the workspace naming convention to enabling DRY repeatability that accommodates
   per-workspace (or per-account, per-region, or per-environment) heterogeneity
@@ -35,17 +35,15 @@ failure domains, while also accommodating intentional heterogeneity?
 
 **Disclaimers**
 
-* In addition to dimensions like AWS account, region, and environment, it's also
-  useful to subdivide Terraform across **_responsibility_**-based projects, each serving
-  different layers of infrastructure purpose (vs. problematically large, sprawling
-  "monolithic" Terraform projects). For example, it's often strategically benefial
-  to reate one or more Terraform projects dedicated to foundation infrastructure management,
-  such as VPC and networking topology, while one or more separate Terraform projects
-  manage higher level platform infrastructure, such as Kubernetes clusters.
-  `tf-workspaces-demo` glosses over this, focusing instead on effective
+* It's often useful to subdivide IaC across **_responsibility_**-based projects,
+  each serving a different "layer" of infrastructure purpose (vs. problematically large, sprawling
+  "monolithic" Terraform projects). For example, foundational infrastructure may,
+  such as VPC and networking configuration, may be managed in separate Terraform project(s)
+  than higher level platform infrastructure, such as Kubernetes clusters.
+  `tf-workspaces-demo` glosses over this, focusing instead on the effective
   use of Terraform workspace conventions _within_ projects. Effective modeling
   of responsibility layers across distinct Terraform projects is a separate art
-  altogether.
+  altogether ;)
 * For demo purposes, `tf-workspaces-demo` uses [localstack-persist](https://hub.docker.com/r/gresau/localstack-persist) as a local, mocked AWS. As such, no real AWS resources are created; instead, the demo focuses on illustrating high level Terraform patterns that are largely agnostic to the underlying infrastructure resources. However, the use of `localstack-persist` -- and the demo's need to persist `localstack` data across GitHub Actions jobs -- requires lotsa extra GitHub Actions workflow steps that wouldn't appear in a real world workflow targeting a real cloud provider. Try not to be too distracted by that :)
 
 ## Bonus highlights and callouts
