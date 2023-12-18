@@ -83,12 +83,12 @@ See the source code comments for particular details and relevant callouts.
   are great. However, their use invites additional complexity (and additional questions about
   how best to structure IaC across account, region, and environment boundaries). Often,
   in my experience, Terraform workspaces are sufficient.
-* **Don't [Terraform child modules](https://developer.hashicorp.com/terraform/language/modules#child-modules) enable reuse?**
+* **Don't [Terraform child modules](https://developer.hashicorp.com/terraform/language/modules#child-modules) enable DRY reuse?**
 
-  Generally, Terraform child modules aspire to solve a bit of a different problem: while
+  Generally, Terraform child modules and workspaces address slightly different problems and are not mutually exclusive. While
   workspaces facilitate the application of a Terraform project against multiple
-  target contexts, provider configurations, and against isolated [states](https://developer.hashicorp.com/terraform/language/state), child modules are generic
+  target contexts, provider configurations, and against isolated [states](https://developer.hashicorp.com/terraform/language/state), child modules are more simply generic
   abstractions of opinionated Terraform "recipes." Modules often target specific
   resources (or combinations of resources), but are largely agnostic to the
-  surrounding context. These child modules can be used and applied within parent Terraform
-  projects, though they cannot be applied independently; they have no project-specific [state](https://developer.hashicorp.com/terraform/language/state) and [provider](https://developer.hashicorp.com/terraform/language/providers) configuration. As such, child modules enable reuse and [composability](https://developer.hashicorp.com/terraform/language/modules/develop/composition) -- and/or enforce best practices governance -- along different dimensions.
+  surrounding context. Child modules can be used and applied within parent Terraform
+  projects, though they cannot be applied independently; they have no project-specific [state](https://developer.hashicorp.com/terraform/language/state) and [provider](https://developer.hashicorp.com/terraform/language/providers) configuration. As such, child modules enable reuse and [composability](https://developer.hashicorp.com/terraform/language/modules/develop/composition) -- and/or enforce best practices governance -- along different dimensions of concern.
