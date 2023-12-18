@@ -1,3 +1,5 @@
+[![Terraform](https://github.com/mdb/tf-workspaces-demo/actions/workflows/terraform.yaml/badge.svg?branch=main)](https://github.com/mdb/tf-workspaces-demo/actions/workflows/terraform.yaml)
+
 # tf-workspaces-demo
 
 **Problem statement:** You need to create and manage cloud infrastructure

@@ -25,7 +25,7 @@ jobs:
         run: tar -cvf localstack-data.tar localstack-data
 
       - name: Upload localstack data for use in subsequent jobs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: localstack-data
           path: localstack-data.tar
@@ -61,7 +61,7 @@ jobs:
           result-encoding: string
 
       - name: Download persisted localstack data generated from previous jobs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ steps.localstack-data-artifact-name.outputs.result }}
           path: localstack-data-tar
@@ -101,7 +101,7 @@ jobs:
         run: ./scripts/wait-for-localstack-persistence.sh ${{ steps.expected-localstack-data-s3-object-count.outputs.result }}
 
       - name: Upload Terraform plan as build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.workspace }}
           path: ${{ matrix.workspace }}.plan
@@ -117,7 +117,7 @@ jobs:
         # By treating the localstack-data directory as a build artifact, localstack data
         # can be persisted across GH Actions steps.
       - name: Upload localstack-data directory tarball as build artifact for use in subsequent jobs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: localstack-data-${{ strategy.job-index }}
           path: localstack-data-${{ strategy.job-index }}.tar
@@ -156,7 +156,7 @@ jobs:
           result-encoding: string
 
       - name: Download final localstack data generated from prior jobs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ steps.final-localstack-data-artifact-name.outputs.result }}
           path: localstack-data-tar
@@ -180,7 +180,7 @@ jobs:
           interval: 3000
 
       - name: Download Terraform plan
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.workspace }}
 
@@ -203,7 +203,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download persisted localstack data generated from previous jobs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: localstack-data
           path: localstack-data-tar
@@ -255,7 +255,7 @@ jobs:
         run: tar -cvf localstack-data-${{ steps.set-workspace.outputs.workspace }}.tar localstack-data
 
       - name: Upload localstack-data directory tarball as build artifact for use in subsequent jobs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: localstack-data-${{ steps.set-workspace.outputs.workspace }}
           path: localstack-data-${{ steps.set-workspace.outputs.workspace }}.tar
