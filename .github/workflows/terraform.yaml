@@ -219,7 +219,7 @@ jobs:
 
       - name: Set workspace name
         id: set-workspace
-        run: echo "workspace=456_us-east-1_pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
+        run: echo "workspace=456_us-east-1_dev_pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
 
       - name: Terraform plan ephemeral ${{ steps.set-workspace.outputs.workspace }} workspace
         run: make plan WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
