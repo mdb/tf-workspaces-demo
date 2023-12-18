@@ -8,21 +8,21 @@ different logical environments (`dev`, `prod`, etc.).
 
 How can a single, IaC configuration be used across all necessary account, region,
 and environment combinations, expediting lead time creating new infrastructure
-as new account/region/environment combinations reveal themselves as necessary?
-How can the IaC be modeled to enforce uniformity and logically isolated failure,
-while also accommodating heterogeneity where necessary?
+as new account/region/environment combinations are needed? How can the IaC be
+modeled to enforce security best practices, uniformity, and logically isolated
+failure domains, while also accommodating intentional heterogeneity?
 
-**Solution:** `tf-workspaces-demo` shows how Terraform's [workspace](https://developer.hashicorp.com/terraform/language/state/workspaces) feature -- used in concert with a robust workspace naming convention -- enables scalable [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) re-use patterns and logical infrastructure segmentation.
+**Solution:** Terraform's [workspace](https://developer.hashicorp.com/terraform/language/state/workspaces) feature -- used in concert with a robust workspace naming convention -- enables scalable [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) re-use patterns and logical infrastructure segmentation.
 
-* Use GitHub Actions to plan (and apply) a single Terraform configuration to multiple [workspaces](https://developer.hashicorp.com/terraform/language/state/workspaces) across a dynamically generated [matrix](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs) of AWS account/region/environment combinations.
-* Enable the creation of new environments in new regions by adding a single entry to `workspaces.json`.
-* Bonus: leverage Terraform workspaces to dynamically create ephemeral
-  pull-request-based dev and testing environments.
+* Use GitHub Actions to `plan` (and `apply`) a single Terraform configuration to multiple [workspaces](https://developer.hashicorp.com/terraform/language/state/workspaces) across a dynamically generated [matrix](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs) of AWS account/region/environment combinations.
+* Enable the creation of new environments in new regions (and/or AWS accounts) by adding a single entry to `workspaces.json`.
+* Bonus: leverage Terraform workspaces to dynamically create ephemeral pull-request-based
+  development and testing environments.
 
 ## Highlights
 
 * Use a `${AWS_ACCOUNT_ID}_${AWS_REGION}_${ENV}` workspace naming scheme to
-  logically segement Terraform actions (and [state](https://developer.hashicorp.com/terraform/language/state)) across AWS account/region/environment
+  logically segment Terraform actions (and [state](https://developer.hashicorp.com/terraform/language/state)) across AWS account/region/environment
   boundaries, ensuring sufficiently limited failure domains.
 * Use the workspace naming convention to enabling DRY repeatability that accommodates
   per-workspace (or per-account, per-region, or per-environment) heterogeneity
@@ -31,21 +31,19 @@ while also accommodating heterogeneity where necessary?
   account/region/environment combinations by adding a single workspace entry to
   `workspaces.json`.
 * Dynamically drive the creation of GitHub Actions matrix builds
-* Use the `terraform.workspace` to impose an [allowed_account_ids](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#allowed_account_ids) constraint on the AWS provider, such that an environment is never plan/apply'd to the wrong account.
+* Use the `terraform.workspace` to impose an [allowed_account_ids](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#allowed_account_ids) constraint on the AWS provider, such that an environment is never `plan`/`apply`'d to the wrong account.
 
 **Disclaimers**
 
-* In addition to dimensions like AWS account, region, and environment, it's also
-  useful to subdivide Terraform across **_responsibility_**-based projects, each serving
-  different layers of infrastructure responsibility (as opposed to
-  problematically large, sprawling "monolithic" Terraform projects). For example,
-  it's often strategically benefial to task one or more Terraform projects in managing
-  foundation infrastructure, such as VPC and networking topology, while one or more
-  separate Terraform projects manage higher level platform infrastructure, such as Kubernetes clusters.
-  `tf-workspaces-demo` glosses over this, focusing instead on effective
+* It's often useful to subdivide IaC across **_responsibility_**-based projects,
+  each serving a different "layer" of infrastructure purpose (vs. problematically large, sprawling
+  "monolithic" Terraform projects). For example, foundational infrastructure may,
+  such as VPC and networking configuration, may be managed in separate Terraform project(s)
+  than higher level platform infrastructure, such as Kubernetes clusters.
+  `tf-workspaces-demo` glosses over this, focusing instead on the effective
   use of Terraform workspace conventions _within_ projects. Effective modeling
   of responsibility layers across distinct Terraform projects is a separate art
-  altogether.
+  altogether ;)
 * For demo purposes, `tf-workspaces-demo` uses [localstack-persist](https://hub.docker.com/r/gresau/localstack-persist) as a local, mocked AWS. As such, no real AWS resources are created; instead, the demo focuses on illustrating high level Terraform patterns that are largely agnostic to the underlying infrastructure resources. However, the use of `localstack-persist` -- and the demo's need to persist `localstack` data across GitHub Actions jobs -- requires lotsa extra GitHub Actions workflow steps that wouldn't appear in a real world workflow targeting a real cloud provider. Try not to be too distracted by that :)
 
 ## Bonus highlights and callouts
@@ -89,7 +87,7 @@ See the source code comments for particular details and relevant callouts.
 
   Generally, Terraform child modules aspire to solve a bit of a different problem: while
   workspaces facilitate the application of a Terraform project against multiple
-  target contexts, provider configurations, and aginst isolated [states](https://developer.hashicorp.com/terraform/language/state), child modules are generic
+  target contexts, provider configurations, and against isolated [states](https://developer.hashicorp.com/terraform/language/state), child modules are generic
   abstractions of opinionated Terraform "recipes." Modules often target specific
   resources (or combinations of resources), but are largely agnostic to the
   surrounding context. These child modules can be used and applied within parent Terraform

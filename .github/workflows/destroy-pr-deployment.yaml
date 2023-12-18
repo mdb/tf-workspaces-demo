@@ -60,8 +60,8 @@ jobs:
       - name: Verify presence of localstack S3 bucket
         run: curl --fail http://localhost.localstack.cloud:4566/tf-workspaces-demo
 
-      - name: Terraform destroy ${{ matrix.workspace }}
-        run: make destroy WORKSPACE=${{ matrix.workspace }}
+      - name: Terraform destroy ${{ steps.set-workspace.outputs.workspace }}
+        run: make destroy WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
 
       - name: Create PR comment with ${{ steps.set-workspace.outputs.workspace }} destruction details
         uses: peter-evans/create-or-update-comment@v3
