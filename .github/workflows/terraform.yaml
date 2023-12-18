@@ -258,6 +258,12 @@ jobs:
       - name: Tar localstack-data directory to preserve file permissions
         run: tar -cvf localstack-data-${{ steps.set-workspace.outputs.workspace }}.tar localstack-data
 
+      - name: Issue GET request to ${{ steps.set-workspace.outputs.workspace }} Terraform state at ${{ steps.set-workspace.outputs.workspace }}-specific S3 endpoint
+        run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ steps.set-workspace.outputs.workspace }}/terraform.tfstate"
+
+      - name: Wait until localstack-data has been correctly persisted
+        run: ./scripts/wait-for-localstack-persistence.sh 1
+
       - name: Upload localstack-data directory tarball as build artifact for use in subsequent jobs
         uses: actions/upload-artifact@v4
         with:
