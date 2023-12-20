@@ -84,7 +84,7 @@ See the source code comments for particular details and relevant callouts.
 * [Using Terraform Workspaces](https://mikeball.info/blog/using-terraform-workspaces/)
 * [HashiCorp's Terraform Workspaces documentation](https://developer.hashicorp.com/terraform/language/state/workspaces)
 
-## What about other tools?
+## What about other tools/techniques?
 
 * **What about [terragrunt](https://terragrunt.gruntwork.io/)?**
 
@@ -101,3 +101,11 @@ See the source code comments for particular details and relevant callouts.
   resources (or combinations of resources), but are largely agnostic to the
   surrounding context. Child modules can be used and applied within parent Terraform
   projects, though they cannot be applied independently; they have no project-specific [state](https://developer.hashicorp.com/terraform/language/state) and [provider](https://developer.hashicorp.com/terraform/language/providers) configuration. As such, child modules enable reuse and [composability](https://developer.hashicorp.com/terraform/language/modules/develop/composition) -- and/or enforce best practices governance -- along different dimensions of concern.
+
+* **Couldn't `region` be an [input variable](https://developer.hashicorp.com/terraform/language/values/variables)?**
+
+  Rather than being encoded in the compound workspace naming convention, the
+  Terraform project could utilize a `var.region` input variable, yes. However,
+  this would lead to two problems:
+    1. Workspace naming collision. For example, `123_dev`'s `us-east-1` and `123_dev`'s `us-west-2` deployments would no longer have unique workspace names.
+    2. Workspace S3 state collision. For example, Terraform would attempt to use `s3://${BUCKET}/env:/123_dev/terraform.tfstate` for both `123_dev`'s `us-east-1` and `123_dev`'s `us-west-2` applications.
