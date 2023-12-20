@@ -11,7 +11,7 @@ and environment combinations? How can the IaC be modeled to enforce security bes
 practices, uniformity, and logically isolated failure domains, while also
 accommodating intentional heterogeneity?
 
-**Solution:** In my experience, Terraform's [workspace](https://developer.hashicorp.com/terraform/language/state/workspaces) feature -- used in concert with a compound workspace naming convention -- enables scalable, [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) re-use patterns, and logical infrastructure segmentation.
+**Solution:** In my experience, Terraform's [workspace](https://developer.hashicorp.com/terraform/language/state/workspaces) feature -- used in concert with a compound `${AWS_ACCOUNT_ID}_${AWS_REGION}_${ENV}`-based workspace naming convention -- enables scalable, [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) re-use patterns, and logical infrastructure segmentation.
 
 `tf-workspaces-demo` offers a reference implementation.
 

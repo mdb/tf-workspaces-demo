@@ -33,7 +33,7 @@ locals {
 
   # Use an explicit env-specific count if one has been defined; otherwise
   # default to 1.
-  # This seeks to demonstrate how workspace naming can accommodate environment-specific
+  # This illustrates how workspace naming can accommodate environment-specific
   # heterogeneity spanning multiple workspaces with minimal logic, only where
   # needed and without polluting a Terraform configuration's public interface
   # via excessive variables.
