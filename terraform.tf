@@ -13,6 +13,8 @@ terraform {
   # the state to:
   # s3://${BUCKET}/${KEY}
   backend "s3" {
+    # Often, IME, it's useful to home this S3 bucket -- and thereby all
+    # workspaces' Terraform state files -- in a central "management" AWS account.
     bucket                      = "tf-workspaces-demo"
     key                         = "terraform.tfstate"
     region                      = "us-east-1"
