@@ -17,16 +17,16 @@ jobs:
         id: set-workspace
         run: echo "workspace=456_us-east-1_dev_pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
 
-      - name: Find existing PR ${{ github.event.pull_request_number }} comment with ${{ steps.set-workspace.outputs.workspace }} deployment details
+      - name: Find existing PR ${{ github.event.number }} comment with ${{ steps.set-workspace.outputs.workspace }} deployment details
         uses: peter-evans/find-comment@v2
         id: find-comment
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ github.event.number }}
           comment-author: 'github-actions[bot]'
           body-includes: This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs
           direction: last
 
-      - name: Use PR ${{ github.event.pull_request_number }} comment to determine GitHub Actions run ID that created ${{ steps.set-workspace.outputs.workspace }} deployment
+      - name: Use PR ${{ github.event.number }} comment to determine GitHub Actions run ID that created ${{ steps.set-workspace.outputs.workspace }} deployment
         uses: actions/github-script@v7
         id: run-id
         with:
@@ -72,8 +72,8 @@ jobs:
       - name: Terraform destroy ${{ steps.set-workspace.outputs.workspace }}
         run: make destroy WORKSPACE=${{ steps.set-workspace.outputs.workspace }}
 
-      - name: Create PR ${{ github.event.pull_request.number }} comment with ${{ steps.set-workspace.outputs.workspace }} destruction details
+      - name: Create PR ${{ github.event.number }} comment with ${{ steps.set-workspace.outputs.workspace }} destruction details
         uses: peter-evans/create-or-update-comment@v3
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ github.event.number }}
           body: 👋 Destroyed `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
