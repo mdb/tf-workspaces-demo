@@ -261,6 +261,11 @@ jobs:
       - name: Wait until localstack-data has been correctly persisted
         run: ./scripts/wait-for-localstack-persistence.sh 1 5
 
+      - name: Verify file state size for debugging
+        run: |
+          ls -l localstack-data/s3/assets/tf-workspaces-demo
+          cat localstack-data/s3/store.json | jq -r '.data["000000000000"]["us-east-1"]["_global"]["buckets"]["tf-workspaces-demo"]["objects"]["_store"]["env:/${{ steps.set-workspace.outputs.workspace }}/terraform.tfstate"]["size"]'
+
       - name: Tar localstack-data directory to preserve file permissions
         run: tar -cvf localstack-data-${{ steps.set-workspace.outputs.workspace }}.tar localstack-data
 
