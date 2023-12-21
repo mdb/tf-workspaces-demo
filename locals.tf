@@ -29,6 +29,7 @@ locals {
 
   terraform_data_count_per_env = {
     prod = 2
+    dev  = 3
   }
 
   # Use an explicit env-specific count if one has been defined; otherwise
