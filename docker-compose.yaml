@@ -17,7 +17,7 @@ version: "3.2"
 services:
   localstack:
     # https://hub.docker.com/r/gresau/localstack-persist
-    image: gresau/localstack-persist:3.0.2
+    image: gresau/localstack-persist:3.0.3
     container_name: localstack
     ports:
       - "4563-4599:4563-4599"
@@ -33,7 +33,7 @@ services:
       start_period: 5s
       timeout: 3s
   terraform-init:
-    image: hashicorp/terraform:${TERRAFORM_VERSION}
+    image: hashicorp/terraform:${TERRAFORM_VERSION:-1.5.0}
     container_name: terraform-init
     depends_on:
       localstack:
@@ -43,7 +43,7 @@ services:
       - "./bootstrap:/bootstrap"
     command: init
   terraform-apply:
-    image: hashicorp/terraform:${TERRAFORM_VERSION}
+    image: hashicorp/terraform:${TERRAFORM_VERSION:-1.5.0}
     container_name: terraform-apply
     depends_on:
       terraform-init:
