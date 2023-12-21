@@ -54,18 +54,6 @@ jobs:
       - name: Start localstack mock AWS environment
         run: make start-localstack
 
-      - name: Verify contents of localstack-data directory for debugging purposes
-        run: docker compose exec --no-TTY localstack ls -R /persisted-data
-
-      - name: Show all s3://tf-workspaces-demo objects in localstack-data/s3/store.json for debugging purposes
-        run: jq '.data["000000000000"]["us-east-1"]["_global"]["buckets"]["tf-workspaces-demo"]["objects"]["_store"] | keys' localstack-data/s3/store.json
-
-      - name: Ensure http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ steps.set-workspace.outputs.workspace }}/terraform.tfstate availability
-        uses: artiz/poll-endpoint@1.0.2
-        with:
-          url: "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ steps.set-workspace.outputs.workspace }}/terraform.tfstate"
-          interval: 3000
-
       - name: Issue GET request to ${{ steps.set-workspace.outputs.workspace }} Terraform state at ${{ steps.set-workspace.outputs.workspace }}-specific S3 endpoint
         run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ steps.set-workspace.outputs.workspace }}/terraform.tfstate"
 
