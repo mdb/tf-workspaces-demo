@@ -91,21 +91,12 @@ jobs:
       - name: Issue GET request to ${{ matrix.workspace }} Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
         run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
 
-      - name: Determine expected localstack-data S3 object count
-        uses: actions/github-script@v7
-        id: expected-localstack-data-s3-object-count
-        with:
-          script: |
-            const jobIndex = ${{ strategy.job-index }};
-            return jobIndex + 1;
-          result-encoding: string
-
         # NOTE: gresau/localstack-persist can seemingly experience a delay
         # reflecting an S3 object in store.json; this can lead to race conditions
         # in which an S3 object in localstack-data/s3/assets is not present in
         # store.json.
       - name: Wait until localstack-data has been correctly persisted
-        run: ./scripts/wait-for-localstack-persistence.sh ${{ steps.expected-localstack-data-s3-object-count.outputs.result }}
+        run: ./scripts/wait-for-localstack-persistence.sh ${{ matrix.workspace }}
 
       - name: Upload Terraform plan as build artifact
         uses: actions/upload-artifact@v4
@@ -255,16 +246,8 @@ jobs:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           body: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
 
-      - name: Issue GET request to ${{ steps.set-workspace.outputs.workspace }} Terraform state at ${{ steps.set-workspace.outputs.workspace }}-specific S3 endpoint
-        run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ steps.set-workspace.outputs.workspace }}/terraform.tfstate"
-
       - name: Wait until localstack-data has been correctly persisted
-        run: ./scripts/wait-for-localstack-persistence.sh 1 5
-
-      - name: Verify file state size for debugging
-        run: |
-          ls -l localstack-data/s3/assets/tf-workspaces-demo
-          cat localstack-data/s3/store.json | jq -r '.data["000000000000"]["us-east-1"]["_global"]["buckets"]["tf-workspaces-demo"]["objects"]["_store"]["env:/${{ steps.set-workspace.outputs.workspace }}/terraform.tfstate"]["size"]'
+        run: ./scripts/wait-for-localstack-persistence.sh ${{ steps.set-workspace.outputs.workspace }}
 
       - name: Tar localstack-data directory to preserve file permissions
         run: tar -cvf localstack-data-${{ steps.set-workspace.outputs.workspace }}.tar localstack-data
