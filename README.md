@@ -31,8 +31,8 @@ accommodating intentional heterogeneity?
 * Use the `terraform.workspace` to impose an [allowed_account_ids](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#allowed_account_ids) constraint on the AWS provider, such that an environment is never `plan`/`apply`'d to the wrong account.
 * Bonus: leverage Terraform workspaces to dynamically create ephemeral pull-request-based
   development and testing environments.
-    * See [PR 14](https://github.com/mdb/tf-workspaces-demo/pull/14) and its
-      associated [GitHub Actions workflow](https://github.com/mdb/tf-workspaces-demo/actions/runs/7274933248)as an
+    * See [PR 16](https://github.com/mdb/tf-workspaces-demo/pull/16) and its
+      associated [GitHub Actions workflow](https://github.com/mdb/tf-workspaces-demo/actions/runs/7287133745) as an
       example.
     * See [PR 15](https://github.com/mdb/tf-workspaces-demo/pull/15) and its
       [environment's destruction](https://github.com/mdb/tf-workspaces-demo/actions/runs/7275088524) as an
