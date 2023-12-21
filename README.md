@@ -11,7 +11,7 @@ and environment combinations? How can the IaC be modeled to enforce security bes
 practices, uniformity, and logically isolated failure domains, while also
 accommodating intentional heterogeneity?
 
-**Solution:** In my experience, Terraform's [workspace](https://developer.hashicorp.com/terraform/language/state/workspaces) feature -- used in concert with a compound `${AWS_ACCOUNT_ID}_${AWS_REGION}_${ENV}`-based workspace naming convention -- enables scalable, [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) re-use patterns, and logical infrastructure segmentation.
+**Solution:** In my experience, Terraform's [workspace](https://developer.hashicorp.com/terraform/language/state/workspaces) feature -- used in concert with a compound `${AWS_ACCOUNT_ID}_${AWS_REGION}_${ENV}`-based workspace naming convention -- enables scalable, [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) re-use patterns, and logical infrastructure segmentation, reducing toil and lead time.
 
 `tf-workspaces-demo` offers a reference implementation.
 
@@ -31,6 +31,13 @@ accommodating intentional heterogeneity?
 * Use the `terraform.workspace` to impose an [allowed_account_ids](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#allowed_account_ids) constraint on the AWS provider, such that an environment is never `plan`/`apply`'d to the wrong account.
 * Bonus: leverage Terraform workspaces to dynamically create ephemeral pull-request-based
   development and testing environments.
+    * See [PR 14](https://github.com/mdb/tf-workspaces-demo/pull/14) and its
+      associated [GitHub Actions workflow](https://github.com/mdb/tf-workspaces-demo/actions/runs/7274933248)as an
+      example.
+    * See [PR 15](https://github.com/mdb/tf-workspaces-demo/pull/15) and its
+      [environment's destruction](https://github.com/mdb/tf-workspaces-demo/actions/runs/7275088524) as an
+      example of the automated destruction of an ephemeral environment after
+      a PR is closed or merged.
 
 **Disclaimers**
 
@@ -45,6 +52,16 @@ accommodating intentional heterogeneity?
   altogether ;)
 * To decouple the demo from real-world AWS dependencies, `tf-workspaces-demo` uses [localstack-persist](https://hub.docker.com/r/gresau/localstack-persist) as a local, mocked AWS. No real AWS resources are created; instead, the demo focuses on illustrating high level Terraform/AWS patterns that are largely agnostic to the specific AWS resources under management.
 * The use of `localstack-persist` -- and the demo's need to persist `localstack` data across GitHub Actions jobs -- requires lotsa extra GitHub Actions workflow monkey business that wouldn't appear in a real world workflow targeting a real cloud provider. Try not to be too distracted by that :)
+* `tf-workspaces-demo`'s GitHub Actions workflow is **not** intended as the
+  canonical design universally applicable to all projects and contexts. Depending on
+  needs, it may be attractive to structure a project's CI/CD differently. For example,
+  there could be distinct jobs -- or even separate workflows, entirely -- targeting `dev`
+  and `prod` (each composed of per-workspace parallelized matrix builds), such that
+  CI/CD parallelizes operations within the same environment, while still ensuring
+  per-workspace Terraform operations against `prod` hinge on `dev` operations' success.
+  Additionally, the workflow(s) could be enhanced with additional steps and
+  fanciness: [terratest](https://terratest.gruntwork.io/) tests, [OPX automated plan analysis](https://mikeball.info/blog/terraform-plan-validation-with-open-policy-agent/), automated
+  pull request commenting reporting `plan` output, etc.
 
 ## Bonus highlights and callouts
 
