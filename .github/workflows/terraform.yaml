@@ -88,15 +88,8 @@ jobs:
       - name: Terraform plan ${{ matrix.workspace }}
         run: make plan WORKSPACE=${{ matrix.workspace }}
 
-      - name: Issue GET request to ${{ matrix.workspace }} Terraform state at ${{ matrix.workspace }}-specific S3 endpoint
-        run: curl "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
-
-        # NOTE: gresau/localstack-persist can seemingly experience a delay
-        # reflecting an S3 object in store.json; this can lead to race conditions
-        # in which an S3 object in localstack-data/s3/assets is not present in
-        # store.json.
-      - name: Wait until localstack-data has been correctly persisted
-        run: ./scripts/wait-for-localstack-persistence.sh ${{ matrix.workspace }}
+      - name: Stop localstack to persist its data to disk
+        run: make down
 
       - name: Upload Terraform plan as build artifact
         uses: actions/upload-artifact@v4
@@ -161,18 +154,6 @@ jobs:
 
       - name: Start localstack mock AWS environment
         run: make start-localstack
-
-      - name: Verify contents of localstack-data directory for debugging purposes
-        run: docker compose exec --no-TTY localstack ls -R /persisted-data
-
-      - name: Show all s3://tf-workspaces-demo objects in localstack-data/s3/store.json for debugging purposes
-        run: jq '.data["000000000000"]["us-east-1"]["_global"]["buckets"]["tf-workspaces-demo"]["objects"]["_store"] | keys' localstack-data/s3/store.json
-
-      - name: Ensure localstack s3://tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate availability
-        uses: artiz/poll-endpoint@1.0.2
-        with:
-          url: "http://localhost.localstack.cloud:4566/tf-workspaces-demo/env:/${{ matrix.workspace }}/terraform.tfstate"
-          interval: 3000
 
       - name: Download Terraform plan
         uses: actions/download-artifact@v4
@@ -246,8 +227,8 @@ jobs:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           body: 👋 This PR has been deployed to `${{ steps.set-workspace.outputs.workspace }}` via ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
 
-      - name: Wait until localstack-data has been correctly persisted
-        run: ./scripts/wait-for-localstack-persistence.sh ${{ steps.set-workspace.outputs.workspace }}
+      - name: Stop localstack to persist its data to disk
+        run: make down
 
       - name: Tar localstack-data directory to preserve file permissions
         run: tar -cvf localstack-data-${{ steps.set-workspace.outputs.workspace }}.tar localstack-data
