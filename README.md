@@ -34,8 +34,8 @@ accommodating intentional heterogeneity?
     * See [PR 16](https://github.com/mdb/tf-workspaces-demo/pull/16) and its
       associated [GitHub Actions workflow](https://github.com/mdb/tf-workspaces-demo/actions/runs/7287133745) as an
       example.
-    * See [PR 15](https://github.com/mdb/tf-workspaces-demo/pull/15) and its
-      [environment's destruction](https://github.com/mdb/tf-workspaces-demo/actions/runs/7275088524) as an
+    * See [PR 21](https://github.com/mdb/tf-workspaces-demo/pull/21) and its
+      [environment's destruction](https://github.com/mdb/tf-workspaces-demo/actions/runs/7295025843) as an
       example of the automated destruction of an ephemeral environment after
       a PR is closed or merged.
 
