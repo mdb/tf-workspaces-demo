@@ -88,6 +88,56 @@ jobs:
       - name: Terraform plan ${{ matrix.workspace }}
         run: make plan WORKSPACE=${{ matrix.workspace }}
 
+      - name: Set Terraform plan ${{ matrix.workspace }} output
+        id: set-plan
+        run: |
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "plan<<$EOF" >> $GITHUB_OUTPUT
+          echo "$(terraform show ${{ matrix.workspace }}.plan)" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+      - name: Find existing PR comment with ${{ matrix.workspace }} plan details
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/find-comment@v2
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: "### ${{ matrix.workspace }} plan"
+
+      - name: Create PR comment with ${{ matrix.workspace }} plan details if a comment does not already exist
+        if: steps.find-comment.outputs.comment-id == '' && github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ### ${{ matrix.workspace }} plan
+
+            See ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+            <details>
+              <summary>Terraform Plan</summary>
+              ```
+              ${{ steps.set-plan.outputs.plan }}
+              ```
+
+      - name: Update existing PR comment with ${{ steps.set-workspace.outputs.workspace }} deployment details if a comment already exists
+        if: steps.find-comment.outputs.comment-id != '' && github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          edit-mode: replace
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          body: |
+            ### ${{ matrix.workspace }} plan
+
+            See ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+            <details>
+              <summary>Terraform Plan</summary>
+              ```
+              ${{ steps.set-plan.outputs.plan }}
+              ```
+
       - name: Stop localstack to persist its data to disk
         run: make down
 
