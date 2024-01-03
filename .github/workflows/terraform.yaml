@@ -87,7 +87,20 @@ jobs:
         run: curl --fail http://localhost.localstack.cloud:4566/tf-workspaces-demo
 
       - name: Terraform plan ${{ matrix.workspace }}
+        id: plan
         run: make plan WORKSPACE=${{ matrix.workspace }}
+
+      - name: Create PR comment with ${{ matrix.workspace }} plan details
+        if: always() && github.event_name == 'pull_request'
+        uses: robburger/terraform-pr-commenter@v1
+        env:
+          EXPAND_SUMMARY_DETAILS: false
+          TF_WORKSPACE: ${{ matrix.workspace }}
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          commenter_type: plan
+          commenter_input: ${{ format('{0}{1}', steps.plan.outputs.stdout, steps.plan.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.plan.outputs.exitcode }}
 
       - name: Stop localstack to persist its data to disk
         run: make down
